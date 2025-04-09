@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: car-serv-deployment
+  namespace: car-serv
+spec:
+  replicas: 2
+  revisionHistoryLimit: 11
+  selector:
+    matchLabels:
+      app: car-serv
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: car-serv
+      namespace: car-serv
+    spec:
+      containers:
+        - envFrom:
+            - secretRef:
+                name: new-test-secret
+                optional: false
+          image: elroydevops/car-serv
+          imagePullPolicy: Always
+          name: car-serv
+          ports:
+            - containerPort: 80
+              name: tcp
+              protocol: TCP
+          volumeMounts:
+            - mountPath: /var/lib/config-map
+              name: car-serv-config-volume
+      volumes:
+        - configMap:
+            defaultMode: 420
+            name: car-serv-configmap
+          name: car-serv-config-volume
